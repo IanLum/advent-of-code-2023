@@ -1,7 +1,7 @@
 file_idx = 0
 # real = 0, test = 1
 
-files = ["day1_input.txt", "day1_test.txt"]
+files = ["day1_input.txt", "day1_test.txt", "day1pt2_test.txt"]
 with open(files[file_idx]) as f:
     lines = f.read().splitlines()
 
