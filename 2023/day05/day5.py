@@ -46,17 +46,21 @@ def part2(lines):
     seeds = defaultdict(list)
     for i, line in enumerate(lines):
         if i == 0:
+            # log seeds as ranges
             seednums = map(int, line.split(": ")[1].split(" "))
             seedpairs = zip(*(iter(seednums),) * 2)
             seeds["seed"] = list(
                 map(lambda x: range(x[0], x[0] + x[1]), list(seedpairs))
             )
         elif i == 1:
+            # skip first empty line
             continue
         elif "-to-" in line:
+            # parse "[source]-to-[destination] map:" lines
             [sourc, _, dest] = line.split(" ")[0].split("-")
             mapp = []
         elif line != "":
+            # add to map
             dest_start, sourc_start, leng = map(int, line.split(" "))
             mapp.append(
                 (
@@ -66,11 +70,14 @@ def part2(lines):
             )
         elif line == "":
             mapp.sort(key=lambda x: x[0].start)
+
+            # split into nicely mappable chunks
             map_sourc_bounds = sum([[i[0].start, i[0].stop] for i in mapp], [])
             chunked = []
             for rang in seeds[sourc]:
                 chunked += chunk(rang, map_sourc_bounds)
 
+            # perform mapping on chunks
             for c in chunked:
                 mapped = False
                 for map_sourc, map_dest in mapp:
@@ -81,10 +88,6 @@ def part2(lines):
                         break
                 if not mapped:
                     seeds[dest].append(c)
-            # seeds[dest].sort(key=lambda x: x.start)
-
-    # for i in seeds.items():
-    #     print(i)
 
     return min(seeds["location"], key=lambda x: x.start).start
 
