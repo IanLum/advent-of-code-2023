@@ -1,7 +1,13 @@
 file_idx = 0
 # real = 0, test = 1
 
-files = ["day10_input.txt", "day10_test.txt", "day10_test_pt2.txt"]
+files = [
+    "day10_input.txt",
+    "day10_test.txt",
+    "day10_test_pt2.txt",
+    "day10_test2_pt2.txt",
+    "day10_test3_pt2.txt",
+]
 with open(files[file_idx]) as f:
     lines = f.read().splitlines()
 
@@ -81,9 +87,9 @@ def get_start_paths(mapp):
             case Direction.RIGHT:
                 vec = complex(1, 0)
             case Direction.DOWN:
-                vec = complex(-1, 0)
+                vec = complex(0, 1)
             case Direction.LEFT:
-                vec = complex(0, -1)
+                vec = complex(-1, 0)
         out.append([start + vec])
     return out
 
@@ -104,6 +110,23 @@ def visualize_pt2(height, width, start, inside, loopmap):
         print(l)
 
 
+def pipe_type(mapp, start):
+    moves = legalmoves(start, [], mapp)
+    # match case doesnt work with sets :(
+    if set(moves) == set([Direction.UP, Direction.RIGHT]):
+        return "L"
+    elif set(moves) == set([Direction.UP, Direction.DOWN]):
+        return "|"
+    elif set(moves) == set([Direction.UP, Direction.LEFT]):
+        return "J"
+    elif set(moves) == set([Direction.RIGHT, Direction.DOWN]):
+        return "F"
+    elif set(moves) == set([Direction.RIGHT, Direction.LEFT]):
+        return "-"
+    elif set(moves) == set([Direction.DOWN, Direction.LEFT]):
+        return "7"
+
+
 def part1(lines):
     mapp = {}
     for i, line in enumerate(lines):
@@ -119,36 +142,43 @@ def part1(lines):
 
 def part2(lines):
     mapp = {}
+    # build the map
     for i, line in enumerate(lines):
         for j, char in enumerate(line):
             mapp[complex(j, i)] = char
 
+    # find the loop
     start, path1, path2 = get_start_paths(mapp)
     while path1[-1] != path2[-1]:
         path1.append(move(path1[-1], path1, mapp))
         path2.append(move(path2[-1], path2, mapp))
 
+    # build map of the loop
     loopmap = dict((loc, mapp[loc]) for loc in path1 + path2 + [start])
-    height = len(lines)
-    width = len(line)
-    inside = []
 
+    # replace start S with appropriate pipe type
+    loopmap[start] = pipe_type(mapp, start)
+
+    # determine inside points
+    inside = []
     for loc in mapp.keys():
         if loc in loopmap:
             continue
 
         up = [loopmap.get(loc + complex(0, -i - 1), None) for i in range(int(loc.imag))]
-
-        # in real input start is an L
         upcount = Counter(up)
+        # find times pipe fully crosses above
+        # J & 7 are left facing
+        # L & F are right facing
+        # one left facing and one right facing is a full cross
         upcrosses = upcount.get("-", 0) + min(
             upcount.get("J", 0) + upcount.get("7", 0),
-            upcount.get("S", 0) + upcount.get("L", 0) + upcount.get("F", 0),
+            upcount.get("L", 0) + upcount.get("F", 0),
         )
         if upcrosses % 2 != 0:
             inside.append(loc)
 
-    # visualize_pt2(height, width, start, inside, loopmap)
+    # visualize_pt2(len(lines), len(line), start, inside, loopmap)
     return len(inside)
 
 
